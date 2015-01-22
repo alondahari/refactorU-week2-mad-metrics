@@ -18,22 +18,43 @@ $(document).on('ready', function() {
 		}
 	};
 
-
 	// Globals
 	var data = {
 		scrolled: 0,
 		timeOnPage: 0,
-		currentScroll: document.body.scrollTop
+		currentScroll: document.body.scrollTop,
+		section: []
 	};
+
+	var $lightboxContent = $('.lightbox-content'),
+			$sections = $('section');
+
+
+	$.each($sections, function(index, val) {
+		var obj = {
+			offset: $(val).offset().top,
+			time: 0
+		};
+		data.section.push(obj);
+	});
 
 	data.percent = getPrecentViewed();
 
-	var $lightboxContent = $('.lightbox-content');
 
 
 	// Timer
 	var timer = setInterval(function () {
-		data.timeOnPage += 1;
+		data.timeOnPage++;
+		var viewTop = document.body.scrollTop,
+				viewBottom = document.body.scrollTop + window.innerHeight;
+
+		$.each(data.section, function(i) {
+			var sectionTop = this.offset,
+					sectionBottom = data.section[i + 1] ? data.section[i + 1].offset : Infinity;
+			if (viewTop < sectionBottom && viewBottom > sectionTop ) {
+				this.time++;
+			}
+		});
 	}, 1000);
 
 	// Events
@@ -47,6 +68,10 @@ $(document).on('ready', function() {
   		addLightboxLine('Time before clicking Sign Up', data.timeBeforeSignup, ' seconds');
   	}
   	addLightboxLine('Time spent on page', data.timeOnPage, ' seconds');
+  	addLightboxLine('Time spent on section 1', data.section[0].time, ' seconds');
+  	addLightboxLine('Time spent on section 2', data.section[1].time, ' seconds');
+  	addLightboxLine('Time spent on section 3', data.section[2].time, ' seconds');
+  	addLightboxLine('Time spent on section 4', data.section[3].time, ' seconds');
 
   });
 
