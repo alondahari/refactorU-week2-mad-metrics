@@ -1,8 +1,11 @@
 $(document).on('ready', function() {
 
 	// Functions
-	var addLightboxLine = function(header, amount, value){
-  	$lightboxContent.append('<p>' + header + ': ' + amount + value + '</p>');
+	var addLightboxLine = function(header, field){
+		var value = header.split('|')[1];
+		header = header.split('|')[0];
+		field = (field.indexOf('|') > 0) ? data[field.split('|')[0]][field.split('|')[1]].time : data[field];
+  	$lightboxContent.append('<p>' + header + ': ' + field + value + '</p>');
 	};
 
 	var getPrecentViewed = function(){
@@ -25,22 +28,25 @@ $(document).on('ready', function() {
 		currentScroll: document.body.scrollTop,
 		section: []
 	};
+	data.percent = getPrecentViewed();
+
+	var fields = {
+		'Percentage of page viewed|%': 'percent',
+		'Total get Distance Scrolled|px': 'scrolled',
+		'Time spent on page| seconds': 'timeOnPage',
+	};
 
 	var $lightboxContent = $('.lightbox-content'),
 			$sections = $('section');
 
-
-	$.each($sections, function(index, val) {
+	$.each($sections, function(i, val) {
 		var obj = {
 			offset: $(val).offset().top,
 			time: 0
 		};
 		data.section.push(obj);
+		fields['Time spent on section ' + i + '| seconds'] = 'section|' + i;
 	});
-
-	data.percent = getPrecentViewed();
-
-
 
 	// Timer
 	var timer = setInterval(function () {
@@ -61,18 +67,9 @@ $(document).on('ready', function() {
   $('.toggle-button').on('click', function() {
 		$lightboxContent.empty();
   	$('.lightbox-screen').toggleClass('hidden');
-
-  	addLightboxLine('Percentage of page viewed', data.percent, '%');
-  	addLightboxLine('Total get Distance Scrolled', data.scrolled, 'px');
-  	if (data.hasOwnProperty('timeBeforeSignup')) {
-  		addLightboxLine('Time before clicking Sign Up', data.timeBeforeSignup, ' seconds');
-  	}
-  	addLightboxLine('Time spent on page', data.timeOnPage, ' seconds');
-  	addLightboxLine('Time spent on section 1', data.section[0].time, ' seconds');
-  	addLightboxLine('Time spent on section 2', data.section[1].time, ' seconds');
-  	addLightboxLine('Time spent on section 3', data.section[2].time, ' seconds');
-  	addLightboxLine('Time spent on section 4', data.section[3].time, ' seconds');
-
+  	$.each(fields, function(i, val) {
+  		addLightboxLine(i, val);
+  	});
   });
 
   $(window).on('scroll', function() {
@@ -82,6 +79,7 @@ $(document).on('ready', function() {
 
   $('.signup-button').one('click', function() {
   	data.timeBeforeSignup = data.timeOnPage;
+  	fields[ 'Time before clicking Sign Up| seconds' ] = 'timeBeforeSignup';
   	return false;
   });
 
