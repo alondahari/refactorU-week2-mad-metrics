@@ -1,8 +1,8 @@
 $(document).on('ready', function() {
 
 	// Functions
-	var addLightboxLine = function(header, value){
-  	$lightboxContent.append('<p>' + header + ': ' + value + '</p>');
+	var addLightboxLine = function(header, amount, value){
+  	$lightboxContent.append('<p>' + header + ': ' + amount + value + '</p>');
 	};
 
 	var getPrecentViewed = function(){
@@ -18,28 +18,46 @@ $(document).on('ready', function() {
 		}
 	};
 
+
 	// Globals
 	var data = {
 		scrolled: 0,
+		timeOnPage: 0,
 		currentScroll: document.body.scrollTop
-	}
+	};
+
 	data.percent = getPrecentViewed();
 
 	var $lightboxContent = $('.lightbox-content');
 
+
+	// Timer
+	var timer = setInterval(function () {
+		data.timeOnPage += 1;
+	}, 1000);
+
 	// Events
-  $('.button').on('click', function() {
+  $('.toggle-button').on('click', function() {
 		$lightboxContent.empty();
   	$('.lightbox-screen').toggleClass('hidden');
 
-  	addLightboxLine('Percentage of page viewed', data.percent);
-  	addLightboxLine('Total get Distance Scrolled', data.scrolled + 'px');
+  	addLightboxLine('Percentage of page viewed', data.percent, '%');
+  	addLightboxLine('Total get Distance Scrolled', data.scrolled, 'px');
+  	if (data.hasOwnProperty('timeBeforeSignup')) {
+  		addLightboxLine('Time before clicking Sign Up', data.timeBeforeSignup, ' seconds');
+  	}
+  	addLightboxLine('Time spent on page', data.timeOnPage, ' seconds');
 
   });
 
   $(window).on('scroll', function() {
   	data.percent = getPrecentViewed();
   	data.scrolled += getDistanceScrolled();
+  });
+
+  $('.signup-button').one('click', function() {
+  	data.timeBeforeSignup = data.timeOnPage;
+  	return false;
   });
 
 });
