@@ -1,11 +1,9 @@
 $(document).on('ready', function() {
 
 	// Functions
-	var addLightboxLine = function(header, field){
-		var value = header.split('|')[1];
-		header = header.split('|')[0];
-		field = (field.indexOf('|') > 0) ? data[field.split('|')[0]][field.split('|')[1]].time : data[field];
-  	$lightboxContent.append('<p>' + header + ': ' + field + value + '</p>');
+	var addLightboxLine = function(field){
+		// field = (field.indexOf('|') > 0) ? data[field.split('|')[0]][field.split('|')[1]].time : data[field];
+  	$lightboxContent.append('<p>' + field.header + ': ' + field.value + field.unit + '</p>');
 	};
 
 	var getPrecentViewed = function(){
@@ -23,63 +21,72 @@ $(document).on('ready', function() {
 
 	// Globals
 	var data = {
-		scrolled: 0,
-		timeOnPage: 0,
+		percent: {
+			header: 'Percentage of page viewed',
+			unit: '%'
+		},
+		scrolled: {
+			header: 'Total get Distance Scrolled',
+			unit: 'px',
+			value: 0
+		},
+		timeOnPage: {
+			header: 'Time spent on page',
+			unit: ' seconds',
+			value: 0
+		},
 		currentScroll: document.body.scrollTop,
-		section: []
+		sections: []
 	};
-	data.percent = getPrecentViewed();
-
-	var fields = {
-		'Percentage of page viewed|%': 'percent',
-		'Total get Distance Scrolled|px': 'scrolled',
-		'Time spent on page| seconds': 'timeOnPage',
-	};
+	data.percent.value = getPrecentViewed();
 
 	var $lightboxContent = $('.lightbox-content'),
 			$sections = $('section');
 
 	$.each($sections, function(i, val) {
-		var obj = {
+		data.sections.push({
+			header: 'Time spent on section' + (i+1),
+			unit: ' seconds',
 			offset: $(val).offset().top,
-			time: 0
-		};
-		data.section.push(obj);
-		fields['Time spent on section ' + i + '| seconds'] = 'section|' + i;
+			value: 0
+		});
 	});
 
 	// Timer
 	var timer = setInterval(function () {
-		data.timeOnPage++;
+		data.timeOnPage.value++;
+
 		var viewTop = document.body.scrollTop,
 				viewBottom = document.body.scrollTop + window.innerHeight;
 
-		$.each(data.section, function(i) {
-			var sectionTop = this.offset,
-					sectionBottom = data.section[i + 1] ? data.section[i + 1].offset : Infinity;
-			if (viewTop < sectionBottom && viewBottom > sectionTop ) {
-				this.time++;
-			}
-		});
 	}, 1000);
 
 	// Events
   $('.toggle-button').on('click', function() {
 		$lightboxContent.empty();
   	$('.lightbox-screen').toggleClass('hidden');
-  	$.each(fields, function(i, val) {
-  		addLightboxLine(i, val);
+  	$.each(data, function(i, val) {
+  		if (val.constructor === Object) {
+  			addLightboxLine(val);
+			} else if (val.constructor === Array) {
+				$.each(val, function(i, val) {
+					addLightboxLine(val);
+				});
+			}
   	});
   });
 
   $(window).on('scroll', function() {
-  	data.percent = getPrecentViewed();
-  	data.scrolled += getDistanceScrolled();
+  	data.percent.value = getPrecentViewed();
+  	data.scrolled.value += getDistanceScrolled();
   });
 
   $('.signup-button').one('click', function() {
-  	data.timeBeforeSignup = data.timeOnPage;
-  	fields[ 'Time before clicking Sign Up| seconds' ] = 'timeBeforeSignup';
+		data.timeBeforeSignup = {
+			header: 'Time before clicking Sign Up',
+			unit: ' seconds',
+			value: data.timeOnPage.value
+		};
   	return false;
   });
 
