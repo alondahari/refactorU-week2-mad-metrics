@@ -2,7 +2,6 @@ $(document).on('ready', function() {
 
 	// Functions
 	var addLightboxLine = function(field){
-		// field = (field.indexOf('|') > 0) ? data[field.split('|')[0]][field.split('|')[1]].time : data[field];
   	$lightboxContent.append('<p>' + field.header + ': ' + field.value + field.unit + '</p>');
 	};
 
@@ -19,7 +18,21 @@ $(document).on('ready', function() {
 		}
 	};
 
+	var setViewedSections = function(){
+		var viewTop = document.body.scrollTop,
+				viewBottom = document.body.scrollTop + window.innerHeight;
+
+		$.each(data.sections, function(i) {
+			var sectionTop = this.offset,
+				sectionBottom = data.sections[i + 1] ? data.sections[i + 1].offset : Infinity;
+			this.viewed = (viewTop < sectionBottom && viewBottom > sectionTop );
+		});
+	};
+
 	// Globals
+	var $lightboxContent = $('.lightbox-content'),
+			$sections = $('section');
+
 	var data = {
 		percent: {
 			header: 'Percentage of page viewed',
@@ -38,26 +51,30 @@ $(document).on('ready', function() {
 		currentScroll: document.body.scrollTop,
 		sections: []
 	};
-	data.percent.value = getPrecentViewed();
 
-	var $lightboxContent = $('.lightbox-content'),
-			$sections = $('section');
+	data.percent.value = getPrecentViewed();
 
 	$.each($sections, function(i, val) {
 		data.sections.push({
 			header: 'Time spent on section' + (i+1),
 			unit: ' seconds',
 			offset: $(val).offset().top,
-			value: 0
-		});
+			value: 0,
+			viewed: false
+		}
+	);
+	setViewedSections();
+
+
 	});
 
 	// Timer
 	var timer = setInterval(function () {
 		data.timeOnPage.value++;
 
-		var viewTop = document.body.scrollTop,
-				viewBottom = document.body.scrollTop + window.innerHeight;
+		$.each(data.sections, function(i) {
+			if (this.viewed === true) this.value++;
+		});
 
 	}, 1000);
 
@@ -69,8 +86,8 @@ $(document).on('ready', function() {
   		if (val.constructor === Object) {
   			addLightboxLine(val);
 			} else if (val.constructor === Array) {
-				$.each(val, function(i, val) {
-					addLightboxLine(val);
+				$.each(val, function(i, value) {
+					addLightboxLine(value);
 				});
 			}
   	});
@@ -79,6 +96,8 @@ $(document).on('ready', function() {
   $(window).on('scroll', function() {
   	data.percent.value = getPrecentViewed();
   	data.scrolled.value += getDistanceScrolled();
+  	setViewedSections();
+
   });
 
   $('.signup-button').one('click', function() {
